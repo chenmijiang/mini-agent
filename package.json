@@ -9,7 +9,7 @@
   "scripts": {
     "fmt": "oxfmt",
     "oxlint": "oxlint",
-    "start": "node src/index.ts",
+    "dev": "tsx src/index.ts",
     "test": "vitest run",
     "build": "tsdown",
     "prepare": "husky"
@@ -26,6 +26,7 @@
     "oxlint": "^1.85.0",
     "oxlint-tsgolint": "^7.0.2003",
     "tsdown": "^0.23.0",
+    "tsx": "^4.23.15",
     "typescript": "^7",
     "vitest": "^5.0.2"
   },
