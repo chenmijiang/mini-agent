@@ -1,11 +1,10 @@
 {
   "name": "mini-agent",
   "private": true,
-  "type": "module",
-  "exports": {
-    ".": "./dist/index.js",
-    "./package.json": "./package.json"
+  "bin": {
+    "mini-agent": "./bin/cli.js"
   },
+  "type": "module",
   "scripts": {
     "fmt": "oxfmt",
     "oxlint": "oxlint",
@@ -38,5 +37,9 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "inlinedDependencies": {
+    "dotenv": "18.0.4",
+    "openai": "7.23.0"
   }
 }

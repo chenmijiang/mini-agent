@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import "dotenv/config";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -6,9 +7,7 @@ import { pathToFileURL } from "node:url";
 import { OpenAICompatibleClient } from "./llm/openai-compatible-client";
 import { tools } from "./tools";
 
-export { OpenAICompatibleClient };
-
-export type AgentTool = (args: Record<string, string>) => Promise<string>;
+type AgentTool = (args: Record<string, string>) => Promise<string>;
 
 export type AgentToolMap = Record<string, AgentTool>;
 
@@ -51,7 +50,7 @@ function requiredArgument(args: Record<string, string>, name: string): string {
   return value;
 }
 
-export const availableTools: AgentToolMap = {
+const availableTools: AgentToolMap = {
   get_weather: (args) => tools.get_weather(requiredArgument(args, "city")),
   get_attraction: (args) =>
     tools.get_attraction(requiredArgument(args, "city"), requiredArgument(args, "weather")),
