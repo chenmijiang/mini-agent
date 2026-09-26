@@ -8,14 +8,15 @@
   },
   "scripts": {
     "fmt": "oxfmt",
-    "lint": "oxlint",
+    "oxlint": "oxlint",
     "start": "node src/index.ts",
     "test": "vitest run",
     "build": "tsdown",
     "prepare": "husky"
   },
   "dependencies": {
-    "dotenv": "^18.0.4"
+    "dotenv": "^18.0.4",
+    "openai": "^7.23.0"
   },
   "devDependencies": {
     "@types/node": "^22",
@@ -33,5 +34,8 @@
       "oxfmt --no-error-on-unmatched-pattern",
       "oxlint --no-error-on-unmatched-pattern"
     ]
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

@@ -5,5 +5,5 @@ export default defineConfig({
   platform: "node",
   fixedExtension: false,
   minify: true,
-  target: "node18",
+  target: "node22",
 });
