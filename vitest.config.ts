@@ -2,6 +2,13 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    include: ["src/**/*.test.{ts,tsx}"],
-  },
+    "projects": [
+      {
+        test: {
+          name: "basic-agent",
+          include: ["./basic-agent/src/**/*.test.ts"],
+        }
+      }
+    ]
+  }
 });

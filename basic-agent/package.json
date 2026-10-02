@@ -1,0 +1,18 @@
+{
+  "name": "basic-agent",
+  "private": true,
+  "bin": {
+    "basic-agent": "./bin/cli.js"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsdown"
+  },
+  "dependencies": {
+    "openai": "^7.23.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

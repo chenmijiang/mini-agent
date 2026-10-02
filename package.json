@@ -1,21 +1,18 @@
 {
   "name": "mini-agent",
   "private": true,
-  "bin": {
-    "mini-agent": "./bin/cli.js"
-  },
+  "workspaces": [
+    "basic-agent"
+  ],
   "type": "module",
   "scripts": {
     "fmt": "oxfmt",
     "oxlint": "oxlint",
-    "dev": "tsx src/index.ts",
     "test": "vitest run",
-    "build": "tsdown",
     "prepare": "husky"
   },
   "dependencies": {
-    "dotenv": "^18.0.4",
-    "openai": "^7.23.0"
+    "dotenv": "^18.0.4"
   },
   "devDependencies": {
     "@types/node": "^22",
@@ -24,10 +21,10 @@
     "oxfmt": "^0.70.0",
     "oxlint": "^1.85.0",
     "oxlint-tsgolint": "^7.0.2003",
-    "tsdown": "^0.23.0",
-    "tsx": "^4.23.15",
     "typescript": "^7",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.2",
+    "tsdown": "^0.23.0",
+    "tsx": "^4.23.15"
   },
   "lint-staged": {
     "**/*.{js,ts,json,md}": [
@@ -37,9 +34,5 @@
   },
   "engines": {
     "node": ">=22"
-  },
-  "inlinedDependencies": {
-    "dotenv": "18.0.4",
-    "openai": "7.23.0"
   }
 }
