@@ -2,12 +2,21 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug app (tsx)",
+      "name": "Basic Agent",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/src/index.ts",
+      "program": "${workspaceFolder}/basic-agent/src/index.ts",
       "runtimeArgs": ["--import", "tsx"],
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}/basic-agent",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Advanced Agent",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/advanced-agent/src/index.ts",
+      "runtimeArgs": ["--import", "tsx"],
+      "cwd": "${workspaceFolder}/advanced-agent",
       "skipFiles": ["<node_internals>/**"]
     }
   ]
