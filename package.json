@@ -2,7 +2,8 @@
   "name": "mini-agent",
   "private": true,
   "workspaces": [
-    "basic-agent"
+    "basic-agent",
+    "advanced-agent"
   ],
   "type": "module",
   "scripts": {
@@ -21,10 +22,10 @@
     "oxfmt": "^0.70.0",
     "oxlint": "^1.85.0",
     "oxlint-tsgolint": "^7.0.2003",
-    "typescript": "^7",
-    "vitest": "^5.0.2",
     "tsdown": "^0.23.0",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "typescript": "^7",
+    "vitest": "^5.0.2"
   },
   "lint-staged": {
     "**/*.{js,ts,json,md}": [
