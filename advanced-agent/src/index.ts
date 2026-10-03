@@ -1,9 +1,7 @@
 // eslint-disable typescript/no-floating-promises
 import "dotenv/config";
 import { HelloAgentsLLM } from "./HelloAgentsLLM";
-import { ReActAgent } from "./ReActAgent";
-import { ToolExecutor } from "./ToolExecutor";
-import { search } from "./tools/search";
+import { PlanAndSolveAgent } from "./PlanAndSolveAgent";
 
 (async function main() {
   try {
@@ -20,17 +18,22 @@ import { search } from "./tools/search";
     //   console.log("\n\n-- - 完整模型响应-- - ");
     //   console.log(responseText);
     // }
-    const toolExecutor = new ToolExecutor();
+    // const toolExecutor = new ToolExecutor();
 
-    const reActAgent = new ReActAgent(new HelloAgentsLLM(), toolExecutor);
+    // const reActAgent = new ReActAgent(new HelloAgentsLLM(), toolExecutor);
 
-    toolExecutor.registerTool(
-      "Search",
-      "一个网页搜索引擎。当你需要回答关于时事、事实以及在你的知识库中找不到的信息时，应使用此工具。",
-      search,
+    // toolExecutor.registerTool(
+    //   "Search",
+    //   "一个网页搜索引擎。当你需要回答关于时事、事实以及在你的知识库中找不到的信息时，应使用此工具。",
+    //   search,
+    // );
+
+    // await reActAgent.run("分析华为最新发布的手机型号及其主要特点");
+
+    const answer = await new PlanAndSolveAgent(new HelloAgentsLLM()).run(
+      "一个水果店周一卖出了15个苹果。周二卖出的苹果数量是周一的两倍。周三卖出的数量比周二少了5个。请问这三天总共卖出了多少个苹果？",
     );
-
-    await reActAgent.run("分析华为最新发布的手机型号及其主要特点");
+    if (answer === null) process.exitCode = 1;
   } catch (e) {
     console.error(String(e));
   }
