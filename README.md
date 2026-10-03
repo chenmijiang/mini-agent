@@ -6,7 +6,7 @@
 
 - 测试验证可观察行为及边界，不依赖具体实现细节。
 - 外部 I/O 应隔离，使测试可重复；测试不访问真实服务或凭据。
-- ReActAgent 每次响应只处理第一组 Thought/Action；测试覆盖工具调用与历史记录、Finish 返回、无效或缺失工具响应，以及 maxSteps 边界。
+- ReActAgent 和 basic-agent 的 ReAct 循环使用 JSON action 协议；测试覆盖合法工具调用、Finish、非法 JSON/字段、转义参数、多 JSON 对象及步数边界。
 - ReflectionAgent 生成 TypeScript 代码并保存执行/反思轨迹；测试覆盖代码与反馈传递、无需改进时停止，以及 maxIterations 上限。
 - 静态检查、格式化和构建分别由项目配置的工具负责。Oxlint 的 type-aware 检查不等同于独立的 TypeScript 编译。
 

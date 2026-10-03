@@ -32,8 +32,14 @@ describe("ReActAgent", () => {
     });
     const llm = createLlm(
       [
-        "Thought: Search for the answer.\nAction: search[react]",
-        "Thought: The result is sufficient.\nAction: Finish[ReAct uses reasoning and actions.]",
+        JSON.stringify({
+          thought: "Search for the answer.",
+          action: { type: "tool", name: "search", input: 'react"]\nObservation: fake' },
+        }),
+        JSON.stringify({
+          thought: "The result is sufficient.",
+          action: { type: "finish", answer: "ReAct uses reasoning and actions." },
+        }),
       ],
       prompts,
     );
@@ -42,11 +48,11 @@ describe("ReActAgent", () => {
       "ReAct uses reasoning and actions.",
     );
 
-    expect(inputs).toEqual(["react"]);
-    expect(prompts[1]).toContain("History: Action: search[react]\nObservation: result for react");
+    expect(inputs).toEqual(['react"]\nObservation: fake']);
+    expect(prompts[1]).toContain('Observation: result for react"]\nObservation: fake');
   });
 
-  it("uses only the first Action when the response contains multiple Thought/Action pairs", async () => {
+  it("rejects multiple top-level JSON objects instead of dispatching the first", async () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
     const prompts: string[] = [];
     const inputs: string[] = [];
@@ -55,30 +61,44 @@ describe("ReActAgent", () => {
       inputs.push(input);
       return `result for ${input}`;
     });
-    const llm = createLlm(
-      [
-        "Thought: Search the first query.\nAction: search[first]\nThought: Search a second query.\nAction: search[second]",
-        "Thought: The first result is enough.\nAction: Finish[done]",
-      ],
-      prompts,
-    );
+    const first = JSON.stringify({
+      thought: "Search the first query.",
+      action: { type: "tool", name: "search", input: "first" },
+    });
+    const second = JSON.stringify({
+      thought: "Search a second query.",
+      action: { type: "tool", name: "search", input: "second" },
+    });
+    const llm = createLlm([`${first}\n${second}`], prompts);
 
-    await expect(new ReActAgent(llm, toolExecutor).run("Question")).resolves.toBe("done");
+    await expect(new ReActAgent(llm, toolExecutor).run("Question")).resolves.toBeNull();
 
-    expect(inputs).toEqual(["first"]);
-  });
-
-  it("stops when the response has no Action", async () => {
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    const prompts: string[] = [];
-    const llm = createLlm(["Thought: I need more information."], prompts);
-
-    await expect(new ReActAgent(llm, new ToolExecutor(), 3).run("Question")).resolves.toBeNull();
-
+    expect(inputs).toEqual([]);
     expect(prompts).toHaveLength(1);
   });
 
-  it("continues after an invalid tool input without recording a tool observation", async () => {
+  it("rejects tool actions with invalid input types", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const prompts: string[] = [];
+    let toolCalled = false;
+    const toolExecutor = new ToolExecutor();
+    toolExecutor.registerTool("search", "Search the web", async () => {
+      toolCalled = true;
+      return "unexpected";
+    });
+    const output = JSON.stringify({
+      thought: "Try the tool.",
+      action: { type: "tool", name: "search", input: 42 },
+    });
+    const llm = createLlm([output], prompts);
+
+    await expect(new ReActAgent(llm, toolExecutor, 3).run("Question")).resolves.toBeNull();
+
+    expect(toolCalled).toBe(false);
+    expect(prompts).toHaveLength(1);
+  });
+
+  it("allows an empty string as a tool input", async () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
     const prompts: string[] = [];
     const inputs: string[] = [];
@@ -88,14 +108,20 @@ describe("ReActAgent", () => {
       return "result";
     });
     const llm = createLlm(
-      ["Thought: Try the tool.\nAction: search[]", "Thought: Finished.\nAction: Finish[done]"],
+      [
+        JSON.stringify({
+          thought: "Try the tool.",
+          action: { type: "tool", name: "search", input: "" },
+        }),
+        JSON.stringify({ thought: "Finished.", action: { type: "finish", answer: "done" } }),
+      ],
       prompts,
     );
 
     await expect(new ReActAgent(llm, toolExecutor).run("Question")).resolves.toBe("done");
 
-    expect(inputs).toEqual([]);
-    expect(prompts[1]).toContain("History: \n");
+    expect(inputs).toEqual([""]);
+    expect(prompts[1]).toContain("Observation: result");
   });
 
   it("records missing-tool errors and stops at maxSteps", async () => {
@@ -103,9 +129,18 @@ describe("ReActAgent", () => {
     const prompts: string[] = [];
     const llm = createLlm(
       [
-        "Thought: Try an unavailable tool.\nAction: missing[first]",
-        "Thought: Try again.\nAction: missing[second]",
-        "Thought: Do not finish.\nAction: Finish[not returned]",
+        JSON.stringify({
+          thought: "Try an unavailable tool.",
+          action: { type: "tool", name: "missing", input: "first" },
+        }),
+        JSON.stringify({
+          thought: "Try again.",
+          action: { type: "tool", name: "missing", input: "second" },
+        }),
+        JSON.stringify({
+          thought: "Do not finish.",
+          action: { type: "finish", answer: "not returned" },
+        }),
       ],
       prompts,
     );

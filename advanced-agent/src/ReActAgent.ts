@@ -2,6 +2,25 @@ import { readFile } from "node:fs/promises";
 
 import type { HelloAgentsLLM } from "./HelloAgentsLLM";
 import { ToolExecutor } from "./ToolExecutor";
+type ReActAction =
+  | { type: "tool"; name: string; input: string }
+  | { type: "finish"; answer: string };
+
+interface ReActResponse {
+  thought: string;
+  action: ReActAction;
+}
+interface RawReActResponse {
+  thought: unknown;
+  action: unknown;
+}
+
+interface RawReActAction {
+  type?: unknown;
+  name?: unknown;
+  input?: unknown;
+  answer?: unknown;
+}
 
 export class ReActAgent {
   private history: string[] = [];
@@ -42,35 +61,23 @@ export class ReActAgent {
         break;
       }
 
-      const [thought, action] = this.parseOutput(responseText);
-      if (thought) {
-        console.log(`思考: ${thought}`);
-      }
-
-      if (!action) {
-        console.log("警告:未能解析出有效的Action，流程终止。");
+      const response = this.parseOutput(responseText);
+      if (!response) {
+        console.log("警告:未能解析有效的 JSON ReAct 响应，流程终止。");
         break;
       }
 
-      if (action.startsWith("Finish")) {
-        const finishMatch = action.match(/Finish\[(.*)\]/s);
-        if (!finishMatch) {
-          console.log("警告:未能解析出有效的Finish答案，流程终止。");
-          break;
-        }
-
-        const finalAnswer = finishMatch[1] ?? "";
-        console.log(`🎉 最终答案: ${finalAnswer}`);
-        return finalAnswer;
+      if (response.thought) {
+        console.log(`思考: ${response.thought}`);
       }
 
-      const [toolName, toolInput] = this.parseAction(action);
-      if (!toolName || !toolInput) {
-        console.log("警告:无效的Action格式。");
-        continue;
+      if (response.action.type === "finish") {
+        console.log(`🎉 最终答案: ${response.action.answer}`);
+        return response.action.answer;
       }
 
-      console.log(`🎬 行动: ${toolName}[${toolInput}]`);
+      const { name: toolName, input: toolInput } = response.action;
+      console.log(`🎬 行动: ${toolName}(${toolInput})`);
 
       const toolFunction = this.toolExecutor.getTool(toolName);
       const observation = toolFunction
@@ -78,7 +85,7 @@ export class ReActAgent {
         : `错误:未找到名为 '${toolName}' 的工具。`;
       console.log(`👀 观察: ${observation}`);
 
-      this.history.push(`Action: ${action}`);
+      this.history.push(`Action: ${JSON.stringify(response.action)}`);
       this.history.push(`Observation: ${observation}`);
     }
 
@@ -86,19 +93,51 @@ export class ReActAgent {
     return null;
   }
 
-  private parseOutput(text: string): [string | null, string | null] {
-    const thoughtMatch = text.match(/Thought:\s*(.*?)(?=\nAction:|$)/s);
-    const actionMatch = text.match(/Action:\s*(.*?)(?=\n\s*(?:Thought:|Action:|Observation:)|$)/s);
-    const thought = thoughtMatch?.[1]?.trim() ?? null;
-    const action = actionMatch?.[1]?.trim() ?? null;
-    return [thought, action];
-  }
-
-  private parseAction(actionText: string): [string | null, string | null] {
-    const match = actionText.match(/(\w+)\[(.*)\]/s);
-    if (match) {
-      return [match[1] ?? null, match[2] ?? null];
+  private parseOutput(text: string): ReActResponse | null {
+    let value: unknown;
+    try {
+      value = JSON.parse(text);
+    } catch {
+      return null;
     }
-    return [null, null];
+
+    if (
+      typeof value !== "object" ||
+      value === null ||
+      Array.isArray(value) ||
+      !("thought" in value) ||
+      !("action" in value)
+    ) {
+      return null;
+    }
+
+    const response = value as RawReActResponse;
+    if (
+      typeof response.thought !== "string" ||
+      typeof response.action !== "object" ||
+      response.action === null ||
+      Array.isArray(response.action)
+    ) {
+      return null;
+    }
+
+    const action = response.action as RawReActAction;
+    if (action.type === "finish" && typeof action.answer === "string") {
+      return { thought: response.thought, action: { type: "finish", answer: action.answer } };
+    }
+
+    if (
+      action.type !== "tool" ||
+      typeof action.name !== "string" ||
+      action.name.length === 0 ||
+      typeof action.input !== "string"
+    ) {
+      return null;
+    }
+
+    return {
+      thought: response.thought,
+      action: { type: "tool", name: action.name, input: action.input },
+    };
   }
 }

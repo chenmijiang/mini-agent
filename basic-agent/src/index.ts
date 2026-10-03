@@ -18,28 +18,76 @@ interface RunAgentOptions {
   maxIterations?: number;
   logger?: Pick<Console, "log">;
 }
+type AgentAction =
+  | { type: "tool"; name: string; input: Record<string, string> }
+  | { type: "finish"; answer: string };
 
-function truncateExtraThoughtAction(output: string): string {
-  const match = output.match(/Thought:.*?Action:.*?(?=\n\s*(?:Thought:|Action:|Observation:)|$)/s);
-
-  return match?.[0].trim() ?? output.trim();
+interface AgentResponse {
+  thought: string;
+  action: AgentAction;
+}
+interface RawAgentResponse {
+  thought: unknown;
+  action: unknown;
 }
 
-function parseToolAction(action: string): {
-  toolName: string;
-  args: Record<string, string>;
-} | null {
-  const match = action.match(/^(?:调用工具\s*[:：]?\s*)?(\w+)\(([\s\S]*)\)$/);
-  if (!match) {
+interface RawAgentAction {
+  type?: unknown;
+  name?: unknown;
+  input?: unknown;
+  answer?: unknown;
+}
+
+function parseAgentResponse(output: string): AgentResponse | null {
+  let value: unknown;
+  try {
+    value = JSON.parse(output);
+  } catch {
     return null;
   }
 
-  const args: Record<string, string> = {};
-  for (const [, key, value] of match[2].matchAll(/(\w+)="([^"]*)"/g)) {
-    args[key] = value;
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    Array.isArray(value) ||
+    !("thought" in value) ||
+    !("action" in value)
+  ) {
+    return null;
   }
 
-  return { toolName: match[1], args };
+  const response = value as RawAgentResponse;
+  if (
+    typeof response.thought !== "string" ||
+    typeof response.action !== "object" ||
+    response.action === null ||
+    Array.isArray(response.action)
+  ) {
+    return null;
+  }
+
+  const action = response.action as RawAgentAction;
+  if (action.type === "finish" && typeof action.answer === "string") {
+    return { thought: response.thought, action: { type: "finish", answer: action.answer } };
+  }
+
+  const input = action.input;
+  if (
+    action.type !== "tool" ||
+    typeof action.name !== "string" ||
+    action.name.length === 0 ||
+    typeof input !== "object" ||
+    input === null ||
+    Array.isArray(input) ||
+    !Object.values(input).every((argument) => typeof argument === "string")
+  ) {
+    return null;
+  }
+
+  return {
+    thought: response.thought,
+    action: { type: "tool", name: action.name, input: input as Record<string, string> },
+  };
 }
 
 function requiredArgument(args: Record<string, string>, name: string): string {
@@ -74,47 +122,39 @@ export async function runAgent(
     logger.log(`--- 循环 ${i + 1} ---\n`);
 
     const fullPrompt = promptHistory.join("\n");
-    let llmOutput = await llm.generate(fullPrompt, systemPrompt);
-    const truncatedOutput = truncateExtraThoughtAction(llmOutput);
-    if (truncatedOutput !== llmOutput.trim()) {
-      llmOutput = truncatedOutput;
-      logger.log("已截断多余的 Thought-Action 对");
-    }
+    const llmOutput = await llm.generate(fullPrompt, systemPrompt);
 
     logger.log(`模型输出:\n${llmOutput}\n`);
     promptHistory.push(llmOutput);
 
-    const actionMatch = llmOutput.match(/Action:\s*([\s\S]*)/);
-    if (!actionMatch) {
-      const observation =
-        "错误: 未能解析到 Action 字段。请确保你的回复严格遵循 'Thought: ... Action: ...' 的格式。";
+    const response = parseAgentResponse(llmOutput);
+    if (!response) {
+      const observation = "错误: 未能解析有效的 JSON ReAct 响应。";
       const observationEntry = `Observation: ${observation}`;
       logger.log(`${observationEntry}\n${"=".repeat(40)}`);
       promptHistory.push(observationEntry);
       continue;
     }
 
-    const action = actionMatch[1].trim();
-    const finishMatch = action.match(/^Finish\[([\s\S]*)\]$/);
-    if (finishMatch) {
-      logger.log(`任务完成，最终答案: ${finishMatch[1]}`);
-      return finishMatch[1];
+    if (response.thought) {
+      logger.log(`思考: ${response.thought}`);
     }
 
-    const toolAction = parseToolAction(action);
+    if (response.action.type === "finish") {
+      logger.log(`任务完成，最终答案: ${response.action.answer}`);
+      return response.action.answer;
+    }
+
+    const { name, input } = response.action;
+    const tool = Object.hasOwn(toolMap, name) ? toolMap[name] : undefined;
     let observation: string;
-    if (!toolAction) {
-      observation = `错误:未能解析工具调用 '${action}'`;
+    if (!tool) {
+      observation = `错误:未定义的工具 '${name}'`;
     } else {
-      const tool = toolMap[toolAction.toolName];
-      if (!tool) {
-        observation = `错误:未定义的工具 '${toolAction.toolName}'`;
-      } else {
-        try {
-          observation = await tool(toolAction.args);
-        } catch (error) {
-          observation = `错误:执行工具 '${toolAction.toolName}' 时发生异常 - ${String(error)}`;
-        }
+      try {
+        observation = await tool(input);
+      } catch (error) {
+        observation = `错误:执行工具 '${name}' 时发生异常 - ${String(error)}`;
       }
     }
 
