@@ -6,6 +6,7 @@
     "dev": "tsx src/index.ts"
   },
   "dependencies": {
+    "google-search-results-nodejs": "^2.1.0",
     "openai": "^7.23.0"
   },
   "engines": {

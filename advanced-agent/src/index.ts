@@ -1,3 +1,5 @@
+// eslint-disable typescript/no-floating-promises
+import "dotenv/config";
 import type { ChatCompletionMessageParam } from "openai/resources";
 
 import { HelloAgentsLLM } from "./HelloAgentsLLM";
