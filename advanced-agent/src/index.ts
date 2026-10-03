@@ -1,14 +1,14 @@
 // eslint-disable typescript/no-floating-promises
 import "dotenv/config";
 import { HelloAgentsLLM } from "./HelloAgentsLLM";
-import { PlanAndSolveAgent } from "./PlanAndSolveAgent";
+import { ReflectionAgent } from "./ReflectionAgent";
 
 (async function main() {
   try {
     // const llmClient = new HelloAgentsLLM();
 
     // const exampleMessages: ChatCompletionMessageParam[] = [
-    //   { role: "system", content: "You are a helpful assistant that writes Python code." },
+    //   { role: "system", content: "You are a helpful assistant that writes TypeScript code." },
     //   { role: "user", content: "写一个快速排序算法" },
     // ];
     // console.log("--- 调用LLM ---");
@@ -30,10 +30,14 @@ import { PlanAndSolveAgent } from "./PlanAndSolveAgent";
 
     // await reActAgent.run("分析华为最新发布的手机型号及其主要特点");
 
-    const answer = await new PlanAndSolveAgent(new HelloAgentsLLM()).run(
-      "一个水果店周一卖出了15个苹果。周二卖出的苹果数量是周一的两倍。周三卖出的数量比周二少了5个。请问这三天总共卖出了多少个苹果？",
+    // const answer = await new PlanAndSolveAgent(new HelloAgentsLLM()).run(
+    //   "一个水果店周一卖出了15个苹果。周二卖出的苹果数量是周一的两倍。周三卖出的数量比周二少了5个。请问这三天总共卖出了多少个苹果？",
+    // );
+    // if (answer === null) process.exitCode = 1;
+
+    await new ReflectionAgent(new HelloAgentsLLM()).run(
+      "编写一个TypeScript函数，找出1到n之间所有的素数 (prime numbers)。",
     );
-    if (answer === null) process.exitCode = 1;
   } catch (e) {
     console.error(String(e));
   }
