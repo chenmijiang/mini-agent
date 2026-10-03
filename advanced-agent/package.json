@@ -1,0 +1,14 @@
+{
+  "name": "advanced-agent",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "openai": "^7.23.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
