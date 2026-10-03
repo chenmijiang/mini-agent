@@ -1,0 +1,12 @@
+{
+  "name": "hello-agent",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx src/index.ts"
+  }
+}

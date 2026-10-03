@@ -15,6 +15,12 @@ export default defineConfig({
           include: ["./advanced-agent/src/**/*.test.ts"],
         },
       },
+      {
+        test: {
+          name: "hello-agent",
+          include: ["./hello-agent/src/**/*.test.ts"],
+        },
+      },
     ],
   },
 });

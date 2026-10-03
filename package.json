@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "basic-agent",
-    "advanced-agent"
+    "advanced-agent",
+    "hello-agent"
   ],
   "type": "module",
   "scripts": {
