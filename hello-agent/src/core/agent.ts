@@ -17,7 +17,7 @@ export abstract class Agent {
     this.config = config ?? new Config();
   }
 
-  abstract run(input_text: string, kwargs?: Record<string, unknown>): string;
+  abstract run(input_text: string, kwargs?: Record<string, unknown>): Promise<string>;
 
   add_message(message: Message): void {
     this._history.push(message);
