@@ -1,13 +1,11 @@
 # mini-agent
 
-本项目的开发与验证 harness 说明，只涵盖检测约定和工具职责。
+用 TypeScript 实现和探索 Agent 的小型学习仓库。
 
-## 检测约定
+## 项目结构
 
-- 测试验证可观察行为及边界，不依赖具体实现细节。
-- 外部 I/O 应隔离，使测试可重复；测试不访问真实服务或凭据。
-- ReActAgent 和 basic-agent 的 ReAct 循环使用 JSON action 协议；测试覆盖合法工具调用、Finish、非法 JSON/字段、转义参数、多 JSON 对象及步数边界。
-- ReflectionAgent 生成 TypeScript 代码并保存执行/反思轨迹；测试覆盖代码与反馈传递、无需改进时停止，以及 maxIterations 上限。
-- 静态检查、格式化和构建分别由项目配置的工具负责。Oxlint 的 type-aware 检查不等同于独立的 TypeScript 编译。
+- `basic-agent/`：精简的 ReAct Agent 实现。
+- `advanced-agent/`：ReAct、Plan-and-Solve 和 Reflection 实现。
+- `hello-agent/`：Agent 核心组件、工具机制及常见范式实现。
 
-具体脚本以 `package.json` 为准；测试发现规则以 `vitest.config.ts` 为准；各工具的检测规则以对应配置文件为准。
+各子项目的具体实现和运行方式以对应目录中的源码与 `package.json` 为准。
