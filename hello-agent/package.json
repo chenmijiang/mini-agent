@@ -8,5 +8,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "openai": "^7.27.0"
   }
 }
